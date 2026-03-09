@@ -1,3 +1,7 @@
+5.2.2:
+    Initial CI/CD fork release.
+    Updated Readme
+    Added CodeQL and Dependabot from Github Advanced Security
 5.2.1:
     Fixed issue where the EDID data would be null unless the UID assigned to the display was exactly 4 digits long.
 5.2.0:
