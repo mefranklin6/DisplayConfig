@@ -62,7 +62,22 @@ jobs:
                   $moduleRootDir = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "Releases/$moduleName"
                   $versionDir = Join-Path -Path $moduleRootDir -ChildPath $version
                   if (-not (Test-Path -LiteralPath $versionDir)) {
-                    throw "Expected release folder not found: $versionDir"
+                    Write-Host "Expected release folder not found yet: $versionDir"
+                    Write-Host 'Attempting to run PostBuild.ps1 explicitly...'
+
+                    $dll = Get-ChildItem -LiteralPath $env:GITHUB_WORKSPACE -Recurse -File -Filter "$moduleName.dll" |
+                      Where-Object { $_.FullName -match '\\bin\\Release\\' } |
+                      Select-Object -First 1
+
+                    if (-not $dll) {
+                      throw "Built assembly not found (looked for $moduleName.dll under bin\\Release)."
+                    }
+
+                    & (Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath 'PostBuild.ps1') -OutputFile $dll.FullName
+
+                    if (-not (Test-Path -LiteralPath $versionDir)) {
+                      throw "Expected release folder not found after PostBuild.ps1: $versionDir"
+                    }
                   }
 
                   $zipName = "$moduleName-$version.zip"
