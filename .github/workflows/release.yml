@@ -27,9 +27,16 @@ jobs:
                   Set-StrictMode -Version Latest
                   $ErrorActionPreference = 'Stop'
 
-                  Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
                   Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-                  Install-Module -Name Microsoft.PowerShell.PlatyPS -Scope CurrentUser -Force -AllowClobber
+
+                  try {
+                    Install-Module -Name Microsoft.PowerShell.PlatyPS -Repository PSGallery -Scope CurrentUser -Force -AllowClobber -Confirm:$false -ErrorAction Stop
+                  } catch {
+                    Write-Host 'Initial Install-Module failed; attempting NuGet provider bootstrap.'
+                    Write-Host $_
+                    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Scope CurrentUser -Force -ForceBootstrap -ErrorAction Stop | Out-Null
+                    Install-Module -Name Microsoft.PowerShell.PlatyPS -Repository PSGallery -Scope CurrentUser -Force -AllowClobber -Confirm:$false -ErrorAction Stop
+                  }
 
             - name: Build (Release)
               shell: pwsh
