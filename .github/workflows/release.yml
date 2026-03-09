@@ -1,0 +1,82 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "*"
+
+permissions:
+    contents: write
+
+jobs:
+    build-and-release:
+        runs-on: windows-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup .NET SDK
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: "8.0.x"
+
+            - name: Install PlatyPS (for help generation)
+              shell: pwsh
+              run: |
+                  Set-StrictMode -Version Latest
+                  $ErrorActionPreference = 'Stop'
+
+                  Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
+                  Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+                  Install-Module -Name Microsoft.PowerShell.PlatyPS -Scope CurrentUser -Force -AllowClobber
+
+            - name: Build (Release)
+              shell: pwsh
+              run: |
+                  Set-StrictMode -Version Latest
+                  $ErrorActionPreference = 'Stop'
+
+                  dotnet build .\DisplayConfig.sln -c Release
+
+            - name: Package release artifact
+              id: package
+              shell: pwsh
+              run: |
+                  Set-StrictMode -Version Latest
+                  $ErrorActionPreference = 'Stop'
+
+                  $moduleName = 'DisplayConfig'
+                  $version = (Get-Content -LiteralPath 'Release notes.txt' -First 1).Split(':')[0].Trim()
+
+                  $tagName = $env:GITHUB_REF_NAME
+                  $tagVersion = $tagName
+                  if ($tagVersion -match '^v(.+)$') {
+                    $tagVersion = $Matches[1]
+                  }
+
+                  if ($tagVersion -match '^\d+(?:\.\d+){2,3}$' -and $tagVersion -ne $version) {
+                    throw "Tag '$tagName' implies version '$tagVersion' but Release notes.txt indicates '$version'. Update Release notes.txt or tag the matching version."
+                  }
+
+                  $moduleRootDir = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "Releases/$moduleName"
+                  $versionDir = Join-Path -Path $moduleRootDir -ChildPath $version
+                  if (-not (Test-Path -LiteralPath $versionDir)) {
+                    throw "Expected release folder not found: $versionDir"
+                  }
+
+                  $zipName = "$moduleName-$version.zip"
+                  if (Test-Path -LiteralPath $zipName) {
+                    Remove-Item -LiteralPath $zipName -Force
+                  }
+
+                  Compress-Archive -Path $moduleRootDir -DestinationPath $zipName -Force
+
+                  "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+                  "zipName=$zipName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  name: ${{ github.ref_name }}
+                  files: ${{ steps.package.outputs.zipName }}
