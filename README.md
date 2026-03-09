@@ -3,36 +3,14 @@
 This PowerShell module allows you to manage various display settings like: Resolution, scaling, desktop positions and more.
 It's built on top of the CCD (Connecting and Configuring Display) APIs. For more details, see: <https://learn.microsoft.com/en-us/windows-hardware/drivers/display/ccd-apis>
 
-## Getting started
+## Fork Notes
 
-Install the module from the PowerShell gallery: `Install-Module DisplayConfig`  
-Then check the available commands in the module: `Get-Command -Module DisplayConfig`  
-There are 2 ways to use the commands in this module. First there's the simple way where you just call each individual command and the settings are immediately applied when each command finishes. For example:
+This is a fork of [MartinGC94/DisplayConfig](https://github.com/MartinGC94/DisplayConfig). The reason for this fork is to add a CI/CD (including code scanning, dependency alerts) and allow PC's to install straight from Github, instead of from PowerShellGallery via NuGet.
 
-```powershell
-Set-DisplayResolution -DisplayId 1 -Width 2560 -Height 1440
-Set-DisplayRefreshRate -DisplayId 1 -RefreshRate 165
-```
+I intend to keep the base code sync'd with the above project as much as practical.
 
-The other way is to generate a display configuration with all the desired settings, which can then be used to apply all the specified settings at once. For example:
+## Donation
 
-```powershell
-Get-DisplayConfig |
-    Set-DisplayResolution -DisplayId 1 -Width 2560 -Height 1440 |
-    Set-DisplayRefreshRate -DisplayId 1 -RefreshRate 165 |
-    Use-DisplayConfig
-```
+The original author has a donation link here. [MartinGC94/DisplayConfig](https://github.com/MartinGC94/DisplayConfig). I have donated.
 
-The benefit of the second approach is that it reduces the amount of time it takes to change all the settings and it reduces the amount of flickering that would normally occur whenever a display setting is changed.  
-Another benefit is that a configuration can be backed up to a file and later restored:
-
-```powershell
-Get-DisplayConfig | Export-Clixml $home\TVGamingProfile.xml
-# Note that you need to import the module in the new session before importing the XML otherwise PowerShell will fail to convert the object correctly.
-Import-Module DisplayConfig
-Import-Clixml $home\TVGamingProfile.xml | Use-DisplayConfig -UpdateAdapterIds
-```
-
-Due to API limitations, not all commands support the display config approach. You can view the list of commands that do by running: `Get-Command -Module DisplayConfig -ParameterName DisplayConfig`.
-
-If you like the module or any other work I do here then feel free to donate: <https://buymeacoffee.com/martingc94>
+No donations will be accepted for this fork.
