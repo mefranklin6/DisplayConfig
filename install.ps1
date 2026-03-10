@@ -174,22 +174,28 @@ try {
             $modulePaths = $env:PSModulePath -split ';' | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
         }
 
-        $preferred = @()
-        $preferred += $modulePaths | Where-Object { $_ -match '\\Documents\\(WindowsPowerShell|PowerShell)\\Modules$' }
-
-        $myDocs = [Environment]::GetFolderPath('MyDocuments')
-        if (-not [string]::IsNullOrWhiteSpace($myDocs)) {
-            if ($PSVersionTable.PSEdition -eq 'Core') {
-                $preferred += (Join-Path $myDocs 'PowerShell\Modules')
-            }
-            else {
-                $preferred += (Join-Path $myDocs 'WindowsPowerShell\Modules')
-            }
+        # Prefer system-wide install under Program Files when possible.
+        # Try both module roots so the module is available to Windows PowerShell 5.1 and PowerShell 7.
+        $systemCandidates = @()
+        if (-not [string]::IsNullOrWhiteSpace($env:ProgramFiles)) {
+            $systemCandidates += (Join-Path $env:ProgramFiles 'WindowsPowerShell\Modules')
+            $systemCandidates += (Join-Path $env:ProgramFiles 'PowerShell\Modules')
         }
 
-        $preferred += $modulePaths
+        $installRoot = Get-WritableModuleRoot -Candidates ($systemCandidates | Select-Object -Unique)
 
-        $installRoot = Get-WritableModuleRoot -Candidates ($preferred | Select-Object -Unique)
+        if ([string]::IsNullOrWhiteSpace($installRoot)) {
+            # Fall back to user profile locations only if no system-wide Program Files location is writable.
+            $userCandidates = @()
+            $myDocs = [Environment]::GetFolderPath('MyDocuments')
+            if (-not [string]::IsNullOrWhiteSpace($myDocs)) {
+                $userCandidates += (Join-Path $myDocs 'WindowsPowerShell\Modules')
+                $userCandidates += (Join-Path $myDocs 'PowerShell\Modules')
+            }
+
+            $installRoot = Get-WritableModuleRoot -Candidates (($userCandidates + $modulePaths) | Select-Object -Unique)
+        }
+
         if ([string]::IsNullOrWhiteSpace($installRoot)) {
             throw "No writable PowerShell module path found in PSModulePath"
         }
@@ -264,6 +270,28 @@ try {
             [string]$ModuleName,
             [string]$ModuleVersion
         )
+
+        # Ensure both PS 5.1 and PS 7 standard module roots are considered during verification.
+        $extraRoots = @()
+        if (-not [string]::IsNullOrWhiteSpace($env:ProgramFiles)) {
+            $extraRoots += (Join-Path $env:ProgramFiles 'WindowsPowerShell\Modules')
+            $extraRoots += (Join-Path $env:ProgramFiles 'PowerShell\Modules')
+        }
+
+        $myDocs = [Environment]::GetFolderPath('MyDocuments')
+        if (-not [string]::IsNullOrWhiteSpace($myDocs)) {
+            $extraRoots += (Join-Path $myDocs 'WindowsPowerShell\Modules')
+            $extraRoots += (Join-Path $myDocs 'PowerShell\Modules')
+        }
+
+        $existingRoots = @()
+        if (-not [string]::IsNullOrWhiteSpace($env:PSModulePath)) {
+            $existingRoots = $env:PSModulePath -split ';' | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        }
+        $mergedRoots = @($extraRoots + $existingRoots) | Select-Object -Unique
+        if ($mergedRoots.Count -gt 0) {
+            $env:PSModulePath = ($mergedRoots -join ';')
+        }
 
         $m = Get-Module -ListAvailable -Name $ModuleName | Sort-Object Version -Descending | Select-Object -First 1
         if ($m) { return $m }
