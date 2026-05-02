@@ -8,7 +8,7 @@ using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Runtime.InteropServices;
 
-namespace MartinGC94.DisplayConfig.API
+namespace MartinGC94.DisplayConfig.API.ParamAttributes
 {
     internal class DisplayModeCompleter : IArgumentCompleter
     {

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 
-namespace MartinGC94.DisplayConfig.API
+namespace MartinGC94.DisplayConfig.API.ParamAttributes
 {
     internal sealed class DisplayIdCompleter : IArgumentCompleter
     {

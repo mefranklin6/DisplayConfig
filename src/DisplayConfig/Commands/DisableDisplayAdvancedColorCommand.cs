@@ -1,4 +1,5 @@
 ﻿using MartinGC94.DisplayConfig.API;
+using MartinGC94.DisplayConfig.API.ParamAttributes;
 using System.Management.Automation;
 
 namespace MartinGC94.DisplayConfig.Commands
