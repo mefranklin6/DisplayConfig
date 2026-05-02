@@ -1,5 +1,4 @@
 ﻿using MartinGC94.DisplayConfig.API;
-using MartinGC94.DisplayConfig.Native.Enums;
 using MartinGC94.DisplayConfig.Native.Structs;
 using System.ComponentModel;
 using System;
