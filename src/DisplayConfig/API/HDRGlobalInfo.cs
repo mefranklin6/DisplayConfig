@@ -32,7 +32,7 @@ $AutoHDREnabled = & {
         return $false
     }
 
-    $Value = Get-ItemPropertyValue -LiteralPath $Path -Name DirectXUserGlobalSettings -ErrorAction Ignore
+    $Value = try{Get-ItemPropertyValue -LiteralPath $Path -Name DirectXUserGlobalSettings -ErrorAction Ignore} catch {}
     if ([string]::IsNullOrWhiteSpace($Value) -or $Value -notmatch ""AutoHDREnable=(\d)"")
     {
         return $false

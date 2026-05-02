@@ -13,7 +13,7 @@ namespace MartinGC94.DisplayConfig.Commands
 
         protected override void EndProcessing()
         {
-            ColorInfo.ToggleAdvancedColor(this, DisplayId, enabled: false);
+            ColorInfo.ToggleAdvancedColor(this, DisplayId, enabled: false, ColorToggleKind.AdvancedColor);
         }
     }
 }
