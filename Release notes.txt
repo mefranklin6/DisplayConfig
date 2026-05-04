@@ -1,14 +1,16 @@
-6.0.1 - fork specific:
-    Change CD release builder from softprops/action-gh-release to 'gh release create'
+6.0.1:
+    Fork Specific: 
+        Change CD release builder from softprops/action-gh-release to 'gh release create'
 6.0.0:
     Use new Windows 11 APIs for reading and setting advanced color settings.
         This changes the properties returned by Get-DisplayColorInfo.
     Added new Enable-DisplayWCG and Disable-DisplayWCG commands. These control the setting "Automatically manage color for apps".
     Fixed error when calling Get-DisplayHDR -Global when the DirectXUserGlobalSettings registry property was missing.
-5.2.2 -  fork specific:
-    Initial CI/CD fork release.
-    Updated Readme
-    Added CodeQL and Dependabot from Github Advanced Security
+5.2.2:
+    Fork Specific:
+        Initial CI/CD fork release.
+        Updated Readme
+        Added CodeQL and Dependabot from Github Advanced Security
 5.2.1:
     Fixed issue where the EDID data would be null unless the UID assigned to the display was exactly 4 digits long.
 5.2.0:
