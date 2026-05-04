@@ -1,4 +1,9 @@
-5.2.2:
+6.0.0:
+    Use new Windows 11 APIs for reading and setting advanced color settings.
+        This changes the properties returned by Get-DisplayColorInfo.
+    Added new Enable-DisplayWCG and Disable-DisplayWCG commands. These control the setting "Automatically manage color for apps".
+    Fixed error when calling Get-DisplayHDR -Global when the DirectXUserGlobalSettings registry property was missing.
+5.2.2 -  fork specific:
     Initial CI/CD fork release.
     Updated Readme
     Added CodeQL and Dependabot from Github Advanced Security

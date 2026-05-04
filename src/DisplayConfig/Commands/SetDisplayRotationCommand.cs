@@ -3,6 +3,7 @@ using MartinGC94.DisplayConfig.Native.Enums;
 using System.Management.Automation;
 using System;
 using System.ComponentModel;
+using MartinGC94.DisplayConfig.API.ParamAttributes;
 
 namespace MartinGC94.DisplayConfig.Commands
 {

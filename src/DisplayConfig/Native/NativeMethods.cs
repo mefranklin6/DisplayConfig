@@ -39,6 +39,12 @@ namespace MartinGC94.DisplayConfig.Native
         internal static extern ReturnCode DisplayConfigGetDeviceInfo(ref DpiConfigGet requestPacket);
 
         [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
+        internal static extern ReturnCode DisplayConfigGetDeviceInfo(ref DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 requestPacket);
+
+        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
+        internal static extern ReturnCode DisplayConfigGetDeviceInfo(ref DISPLAYCONFIG_GET_MONITOR_SPECIALIZATION requestPacket);
+
+        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
         internal static extern ReturnCode DisplayConfigSetDeviceInfo(ref DISPLAYCONFIG_SUPPORT_VIRTUAL_RESOLUTION setPacket);
 
         [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
@@ -49,6 +55,15 @@ namespace MartinGC94.DisplayConfig.Native
 
         [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
         internal static extern ReturnCode DisplayConfigSetDeviceInfo(ref SdrWhiteLevelSet requestPacket);
+
+        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
+        internal static extern ReturnCode DisplayConfigSetDeviceInfo(ref DISPLAYCONFIG_SET_HDR_STATE requestPacket);
+
+        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
+        internal static extern ReturnCode DisplayConfigSetDeviceInfo(ref DISPLAYCONFIG_SET_MONITOR_SPECIALIZATION requestPacket);
+
+        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
+        internal static extern ReturnCode DisplayConfigSetDeviceInfo(ref DISPLAYCONFIG_SET_WCG_STATE requestPacket);
 
         [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
         internal static extern ReturnCode GetDisplayConfigBufferSizes(DisplayConfigFlags flags, out uint numPathArrayElements, out uint numModeInfoArrayElements);
