@@ -1,5 +1,5 @@
 ﻿using MartinGC94.DisplayConfig.API;
-using MartinGC94.DisplayConfig.Native.Enums;
+using MartinGC94.DisplayConfig.API.ParamAttributes;
 using MartinGC94.DisplayConfig.Native.Structs;
 using System;
 using System.ComponentModel;
@@ -53,7 +53,7 @@ $PropertyParams = @{{
     LiteralPath = $Path
     Name        = 'DirectXUserGlobalSettings'
 }}
-$OldValue = Get-ItemPropertyValue @PropertyParams -ErrorAction Ignore
+$OldValue = try {Get-ItemPropertyValue @PropertyParams -ErrorAction Ignore} catch {}
 
 $NewValue = if ([string]::IsNullOrWhiteSpace($OldValue))
 {{
@@ -77,7 +77,7 @@ New-ItemProperty @PropertyParams -PropertyType String -Value $NewValue -Force", 
 
             if (MyInvocation.BoundParameters.ContainsKey("EnableHDR"))
             {
-                ColorInfo.ToggleAdvancedColor(this, DisplayId, EnableHDR);
+                ColorInfo.ToggleAdvancedColor(this, DisplayId, EnableHDR, ColorToggleKind.HDR);
             }
 
             if (MyInvocation.BoundParameters.ContainsKey("SdrWhiteLevel"))

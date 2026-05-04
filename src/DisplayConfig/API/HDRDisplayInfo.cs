@@ -9,7 +9,7 @@
         internal HDRDisplayInfo(ColorInfo colorInfo, uint displayId)
         {
             DisplayId = displayId;
-            HDREnabled = colorInfo.AdvancedColorEnabled;
+            HDREnabled = colorInfo.HDREnabled;
             SdrWhiteLevel = colorInfo.SDRWhiteLevel;
         }
     }

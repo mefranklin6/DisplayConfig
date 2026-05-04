@@ -4,8 +4,8 @@ using System.Management.Automation;
 
 namespace MartinGC94.DisplayConfig.Commands
 {
-    [Cmdlet(VerbsLifecycle.Enable, "DisplayAdvancedColor")]
-    public sealed class EnableDisplayAdvancedColorCommand : Cmdlet
+    [Cmdlet(VerbsLifecycle.Enable, "DisplayWCG")]
+    public sealed class EnableDisplayWCGCommand : Cmdlet
     {
         [Parameter(Mandatory = true, Position = 0)]
         [ArgumentCompleter(typeof(DisplayIdCompleter))]
@@ -13,7 +13,7 @@ namespace MartinGC94.DisplayConfig.Commands
 
         protected override void EndProcessing()
         {
-            ColorInfo.ToggleAdvancedColor(this, DisplayId, enabled: true, ColorToggleKind.AdvancedColor);
+            ColorInfo.ToggleAdvancedColor(this, DisplayId, enabled: true, ColorToggleKind.WCG);
         }
     }
 }

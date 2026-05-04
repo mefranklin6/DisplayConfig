@@ -11,24 +11,32 @@ namespace MartinGC94.DisplayConfig.API
     internal sealed class ColorInfo
     {
         public bool AdvancedColorSupported { get; }
-        public bool AdvancedColorEnabled { get; }
-        public bool WideColorEnforced { get; }
-        public bool AdvancedColorForceDisabled { get; }
+        public bool AdvancedColorActive { get; }
+        public bool AdvancedColorLimitedByPolicy { get; }
+        public bool HDRSupported { get; }
+        public bool HDREnabled { get; }
+        public bool WideColorSupported { get; }
+        public bool WideColorEnabled { get; }
         public ColorEncoding ColorEncoding { get; }
         public uint BitsPerColorChannel { get; }
+        public ColorMode ColorMode { get; }
         public uint SDRWhiteLevel { get; }
-        public float WhiteLevelInNits { get; }
+        public float SDRWhiteLevelInNits { get; }
 
-        private ColorInfo(DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO colorData, DISPLAYCONFIG_SDR_WHITE_LEVEL sdrData)
+        private ColorInfo(DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 colorData, DISPLAYCONFIG_SDR_WHITE_LEVEL sdrData)
         {
             AdvancedColorSupported = colorData.AdvancedColorSupported;
-            AdvancedColorEnabled = colorData.AdvancedColorEnabled;
-            WideColorEnforced = colorData.WideColorEnforced;
-            AdvancedColorForceDisabled = colorData.AdvancedColorForceDisabled;
+            AdvancedColorActive = colorData.AdvancedColorActive;
+            AdvancedColorLimitedByPolicy = colorData.AdvancedColorLimitedByPolicy;
+            HDRSupported = colorData.HighDynamicRangeSupported;
+            HDREnabled = colorData.HighDynamicRangeUserEnabled;
+            WideColorSupported = colorData.WideColorSupported;
+            WideColorEnabled = colorData.WideColorUserEnabled;
             ColorEncoding = (ColorEncoding)colorData.colorEncoding;
             BitsPerColorChannel = colorData.bitsPerColorChannel;
+            ColorMode = (ColorMode)colorData.activeColorMode;
             SDRWhiteLevel = sdrData.SDRWhiteLevel;
-            WhiteLevelInNits = sdrData.WhiteLevelInNits;
+            SDRWhiteLevelInNits = sdrData.WhiteLevelInNits;
         }
 
         internal static ColorInfo GetColorInfo(DisplayConfig config, uint displayId)
@@ -41,13 +49,13 @@ namespace MartinGC94.DisplayConfig.API
             return new ColorInfo(colorData, sdrData);
         }
 
-        private static DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO GetAdvancedColorInfo(LUID adapterId, uint targetId)
+        private static DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 GetAdvancedColorInfo(LUID adapterId, uint targetId)
         {
-            var colorInfo = new DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO()
+            var colorInfo = new DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2()
             {
                 header = new DISPLAYCONFIG_DEVICE_INFO_HEADER()
                 {
-                    type = DISPLAYCONFIG_DEVICE_INFO_TYPE.DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO,
+                    type = DISPLAYCONFIG_DEVICE_INFO_TYPE.DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO_2,
                     adapterId = adapterId,
                     id = targetId
                 }
@@ -83,7 +91,7 @@ namespace MartinGC94.DisplayConfig.API
             return sdrInfo;
         }
 
-        internal static void ToggleAdvancedColor(Cmdlet command, uint[] displayIds, bool enabled)
+        internal static void ToggleAdvancedColor(Cmdlet command, uint[] displayIds, bool enabled, ColorToggleKind colorKind)
         {
             var config = DisplayConfig.GetConfig(command);
             foreach (uint id in displayIds)
@@ -111,19 +119,7 @@ namespace MartinGC94.DisplayConfig.API
 
                 LUID adapterId = config.PathArray[index].targetInfo.adapterId;
                 uint sourceId = config.PathArray[index].targetInfo.id;
-                var advancedColorInfo = new DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE()
-                {
-                    header = new DISPLAYCONFIG_DEVICE_INFO_HEADER()
-                    {
-                        adapterId = adapterId,
-                        id = sourceId,
-                        type = DISPLAYCONFIG_DEVICE_INFO_TYPE.DISPLAYCONFIG_DEVICE_INFO_SET_ADVANCED_COLOR_STATE
-                    },
-                    value = (uint)(enabled ? 1 : 0)
-                };
-                advancedColorInfo.header.size = (uint)Marshal.SizeOf(advancedColorInfo);
-
-                ReturnCode res = NativeMethods.DisplayConfigSetDeviceInfo(ref advancedColorInfo);
+                ReturnCode res = SetColorState(adapterId, sourceId, enabled, colorKind);
                 if (res != ReturnCode.ERROR_SUCCESS)
                 {
                     var error = new Win32Exception((int)res);
@@ -131,7 +127,66 @@ namespace MartinGC94.DisplayConfig.API
                 }
             }
         }
-    
+
+        private static ReturnCode SetColorState(LUID adapterId, uint sourceId, bool enabled, ColorToggleKind colorKind)
+        {
+            ReturnCode res;
+
+            switch (colorKind)
+            {
+                case ColorToggleKind.AdvancedColor:
+                    var advancedColorState = new DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE()
+                    {
+                        header = new DISPLAYCONFIG_DEVICE_INFO_HEADER()
+                        {
+                            adapterId = adapterId,
+                            id = sourceId,
+                            type = DISPLAYCONFIG_DEVICE_INFO_TYPE.DISPLAYCONFIG_DEVICE_INFO_SET_ADVANCED_COLOR_STATE
+                        },
+                        value = (uint)(enabled ? 1 : 0)
+                    };
+                    advancedColorState.header.size = (uint)Marshal.SizeOf(advancedColorState);
+
+                    res = NativeMethods.DisplayConfigSetDeviceInfo(ref advancedColorState);
+                    break;
+                case ColorToggleKind.HDR:
+                    var hdrState = new DISPLAYCONFIG_SET_HDR_STATE()
+                    {
+                        header = new DISPLAYCONFIG_DEVICE_INFO_HEADER()
+                        {
+                            adapterId = adapterId,
+                            id = sourceId,
+                            type = DISPLAYCONFIG_DEVICE_INFO_TYPE.DISPLAYCONFIG_DEVICE_INFO_SET_HDR_STATE
+                        },
+                        value = (uint)(enabled ? 1 : 0)
+                    };
+                    hdrState.header.size = (uint)Marshal.SizeOf(hdrState);
+
+                    res = NativeMethods.DisplayConfigSetDeviceInfo(ref hdrState);
+                    break;
+                case ColorToggleKind.WCG:
+                    var wcgState = new DISPLAYCONFIG_SET_WCG_STATE()
+                    {
+                        header = new DISPLAYCONFIG_DEVICE_INFO_HEADER()
+                        {
+                            adapterId = adapterId,
+                            id = sourceId,
+                            type = DISPLAYCONFIG_DEVICE_INFO_TYPE.DISPLAYCONFIG_DEVICE_INFO_SET_WCG_STATE
+                        },
+                        value = (uint)(enabled ? 1 : 0)
+                    };
+                    wcgState.header.size = (uint)Marshal.SizeOf(wcgState);
+
+                    res = NativeMethods.DisplayConfigSetDeviceInfo(ref wcgState);
+                    break;
+
+                default:
+                    throw new ArgumentException("Invalid colorKind");
+            }
+
+            return res;
+        }
+
         internal static void SetSdrWhiteLevel(LUID adapterId, uint targetId, uint whiteLevel)
         {
             var whiteLevelInfo = new SdrWhiteLevelSet()

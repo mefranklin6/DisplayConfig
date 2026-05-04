@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Management.Automation;
 using System.Collections.Generic;
+using MartinGC94.DisplayConfig.API.ParamAttributes;
 
 namespace MartinGC94.DisplayConfig.Commands
 {
