@@ -1,3 +1,5 @@
+6.0.1 - fork specific:
+    Change CD release builder from softprops/action-gh-release to 'gh release create'
 6.0.0:
     Use new Windows 11 APIs for reading and setting advanced color settings.
         This changes the properties returned by Get-DisplayColorInfo.
